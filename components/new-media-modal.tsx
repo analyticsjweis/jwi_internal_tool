@@ -71,14 +71,15 @@ export function NewMediaModal({ isOpen, onClose }: NewMediaModalProps) {
           "x-amz-acl": "public-read",
           "Origin": window.location.origin,
           "Access-Control-Request-Method": "PUT",
-          "Access-Control-Request-Headers": "content-type,x-amz-acl",
+          "Access-Control-Request-Headers": "content-type,x-amz-acl,origin",
         },
         mode: "cors",
         credentials: "omit",
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to upload file: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Failed to upload file: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       // Create the media record in the database
