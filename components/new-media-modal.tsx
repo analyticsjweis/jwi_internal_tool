@@ -29,6 +29,13 @@ interface NewMediaModalProps {
   onClose: () => void;
 }
 
+function cleanFilename(filename: string): string {
+  return filename
+    .replace(/\s+/g, '-')           // Replace spaces with hyphens
+    .replace(/[^a-zA-Z0-9.-]/g, '') // Remove special characters except dots and hyphens
+    .toLowerCase();                 // Convert to lowercase
+}
+
 export function NewMediaModal({ isOpen, onClose }: NewMediaModalProps) {
   const router = useRouter();
   const createMedia = useMutation(api.media.create);
@@ -56,11 +63,21 @@ export function NewMediaModal({ isOpen, onClose }: NewMediaModalProps) {
     setUploadProgress(0);
 
     try {
+      console.log("🚀 About to call getUploadUrl with:");
+      console.log("- fileName:", cleanFilename(selectedFile.name));
+      console.log("- contentType:", selectedFile.type);
+      console.log("- file size:", selectedFile.size, "bytes");
+      
       // Get the upload URL from Cloudflare
       const { signedUrl, publicUrl } = await getUploadUrl({
-        fileName: `${Date.now()}-${selectedFile.name}`,
+        fileName: cleanFilename(selectedFile.name),
         contentType: selectedFile.type,
       });
+
+      console.log("✅ Received response from Convex:");
+      console.log("- signedUrl length:", signedUrl.length);
+      console.log("- signedUrl preview:", signedUrl.substring(0, 100) + "...");
+      console.log("- publicUrl:", publicUrl);
 
       // Upload the file to Cloudflare
       const response = await fetch(signedUrl, {
@@ -68,19 +85,23 @@ export function NewMediaModal({ isOpen, onClose }: NewMediaModalProps) {
         body: selectedFile,
         headers: {
           "Content-Type": selectedFile.type,
-          "x-amz-acl": "public-read",
-          "Origin": window.location.origin,
-          "Access-Control-Request-Method": "PUT",
-          "Access-Control-Request-Headers": "content-type,x-amz-acl,origin",
-        },
-        mode: "cors",
-        credentials: "omit",
+        }
       });
+
+      console.log("🔄 Starting upload to Cloudflare R2...");
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.error("❌ Upload failed:");
+        console.error("- Status:", response.status, response.statusText);
+        console.error("- Response:", errorText);
+        console.error("- Headers:", Object.fromEntries(response.headers.entries()));
         throw new Error(`Failed to upload file: ${response.status} ${response.statusText} - ${errorText}`);
       }
+
+      console.log("✅ Upload successful!");
+      console.log("- Status:", response.status);
+      console.log("- Headers:", Object.fromEntries(response.headers.entries()));
 
       // Create the media record in the database
       await createMedia({

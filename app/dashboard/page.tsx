@@ -1,13 +1,35 @@
+"use client";
+
 import Link from "next/link";
-// import { api } from "@/convex/_generated/api";
-// import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { useQuery } from "convex/react";
+import { useState } from "react";
+import { AddCompanyModal } from "@/components/add-company-modal";
+import { NewMediaModal } from "@/components/new-media-modal";
+import { AddAdModal } from "@/components/add-ad-modal";
 
 export default function DashboardPage() {
+  const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
+  const [isNewMediaModalOpen, setIsNewMediaModalOpen] = useState(false);
+  const [isAddAdModalOpen, setIsAddAdModalOpen] = useState(false);
+
+  const companies = useQuery(api.companies.list);
+  const media = useQuery(api.media.list, {});
+  const ads = useQuery(api.ads.list, {});
+
+  const totalCompanies = companies?.length ?? 0;
+  const totalMedia = media?.length ?? 0;
+  const now = new Date().toISOString();
+  const activeAds = ads?.filter(ad => 
+    ad.startDate <= now && ad.endDate >= now
+  )?.length ?? 0;
+  const totalSpend = ads?.reduce((sum, ad) => sum + (ad.spendUSD ?? 0), 0) ?? 0;
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold text-gray-900">Dashboard Overview</h1>
       
-      {/* Key Metrics */}
+      {/* Key Metrics */}     
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
@@ -20,7 +42,7 @@ export default function DashboardPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">Total Companies</dt>
-                  <dd className="text-lg font-medium text-gray-900">Loading...</dd>
+                  <dd className="text-lg font-medium text-gray-900">{totalCompanies}</dd>
                 </dl>
               </div>
             </div>
@@ -45,7 +67,7 @@ export default function DashboardPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">Total Media Items</dt>
-                  <dd className="text-lg font-medium text-gray-900">Loading...</dd>
+                  <dd className="text-lg font-medium text-gray-900">{totalMedia}</dd>
                 </dl>
               </div>
             </div>
@@ -71,7 +93,7 @@ export default function DashboardPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">Active Ads</dt>
-                  <dd className="text-lg font-medium text-gray-900">Loading...</dd>
+                  <dd className="text-lg font-medium text-gray-900">{activeAds}</dd>
                 </dl>
               </div>
             </div>
@@ -96,7 +118,7 @@ export default function DashboardPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">Total Spend</dt>
-                  <dd className="text-lg font-medium text-gray-900">Loading...</dd>
+                  <dd className="text-lg font-medium text-gray-900">${totalSpend.toLocaleString()}</dd>
                 </dl>
               </div>
             </div>
@@ -116,27 +138,41 @@ export default function DashboardPage() {
         <div className="px-4 py-5 sm:p-6">
           <h3 className="text-lg leading-6 font-medium text-gray-900">Quick Actions</h3>
           <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
-            <Link
-              href="/dashboard/companies/new"
+            <button
+              onClick={() => setIsAddCompanyModalOpen(true)}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
             >
               Add New Company
-            </Link>
-            <Link
-              href="/dashboard/media/new"
+            </button>
+            <button
+              onClick={() => setIsNewMediaModalOpen(true)}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
             >
               Upload New Media
-            </Link>
-            <Link
-              href="/dashboard/ads/new"
+            </button>
+            <button
+              onClick={() => setIsAddAdModalOpen(true)}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
             >
               Create New Ad
-            </Link>
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <AddCompanyModal 
+        isOpen={isAddCompanyModalOpen} 
+        onClose={() => setIsAddCompanyModalOpen(false)} 
+      />
+      <NewMediaModal 
+        isOpen={isNewMediaModalOpen} 
+        onClose={() => setIsNewMediaModalOpen(false)} 
+      />
+      <AddAdModal 
+        isOpen={isAddAdModalOpen} 
+        onClose={() => setIsAddAdModalOpen(false)} 
+      />
     </div>
   );
 } 

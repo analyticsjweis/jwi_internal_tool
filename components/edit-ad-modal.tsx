@@ -33,8 +33,8 @@ export function EditAdModal({ isOpen, onClose, adId }: EditAdModalProps) {
   const router = useRouter();
   const updateAd = useMutation(api.ads.update);
   const ad = useQuery(api.ads.get, { id: adId });
-  const companies = useQuery(api.companies.list);
-  const mediaItems = useQuery(api.media.list);
+  const companies = useQuery(api.companies.list, {});
+  const mediaItems = useQuery(api.media.list, {});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     mediaId: "",
@@ -78,6 +78,7 @@ export function EditAdModal({ isOpen, onClose, adId }: EditAdModalProps) {
         leads: Number(formData.leads),
         clicks: Number(formData.clicks),
         reach: Number(formData.reach),
+        budget: 0
       });
 
       onClose();

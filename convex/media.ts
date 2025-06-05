@@ -80,6 +80,7 @@ export const getCloudflareUploadUrl = mutation({
     contentType: v.string(),
   },
   handler: async (ctx, args) => {
+    console.log("📤 [Convex] Upload URL requested for:", args.fileName);
     const { signedUrl, publicUrl } = await getUploadUrl(args.fileName, args.contentType);
     return { signedUrl, publicUrl };
   },

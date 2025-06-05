@@ -61,6 +61,7 @@ export const create = mutation({
     leads: v.number(),
     clicks: v.number(),
     reach: v.number(),
+    budget: v.number(),
   },
   handler: async (ctx, args) => {
     const adId = await ctx.db.insert("ads", args);
@@ -81,6 +82,7 @@ export const update = mutation({
     leads: v.number(),
     clicks: v.number(),
     reach: v.number(),
+    budget: v.number(),
   },
   handler: async (ctx, args) => {
     const { id, ...data } = args;

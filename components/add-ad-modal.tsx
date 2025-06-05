@@ -50,6 +50,18 @@ export function AddAdModal({ isOpen, onClose }: AddAdModalProps) {
     setIsSubmitting(true);
 
     try {
+      console.log("🚀 Creating ad with data:", {
+        ...formData,
+        mediaId: formData.mediaId as Id<"mediaItems">,
+        companyId: formData.companyId as Id<"companies">,
+        assignedToCompanyIds: [formData.companyId as Id<"companies">],
+        spendUSD: Number(formData.spendUSD),
+        leads: Number(formData.leads),
+        clicks: Number(formData.clicks),
+        reach: Number(formData.reach),
+        budget: 0
+      });
+
       await createAd({
         ...formData,
         mediaId: formData.mediaId as Id<"mediaItems">,
@@ -59,12 +71,14 @@ export function AddAdModal({ isOpen, onClose }: AddAdModalProps) {
         leads: Number(formData.leads),
         clicks: Number(formData.clicks),
         reach: Number(formData.reach),
+        budget: 0
       });
 
+      console.log("✅ Ad created successfully!");
       onClose();
       router.refresh();
     } catch (error) {
-      console.error("Failed to create ad:", error);
+      console.error("❌ Failed to create ad:", error);
       alert("Failed to create ad. Please try again.");
     } finally {
       setIsSubmitting(false);
