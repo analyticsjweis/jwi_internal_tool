@@ -32,17 +32,13 @@ export function AddAdModal({ isOpen, onClose }: AddAdModalProps) {
   const router = useRouter();
   const createAd = useMutation(api.ads.create);
   const companies = useQuery(api.companies.list, {});
-  const mediaItems = useQuery(api.media.list, {});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    mediaId: "",
+    name: "",
     companyId: "",
     startDate: "",
     endDate: "",
-    spendUSD: 0,
-    leads: 0,
-    clicks: 0,
-    reach: 0,
+    budget: 0,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,26 +48,16 @@ export function AddAdModal({ isOpen, onClose }: AddAdModalProps) {
     try {
       console.log("🚀 Creating ad with data:", {
         ...formData,
-        mediaId: formData.mediaId as Id<"mediaItems">,
         companyId: formData.companyId as Id<"companies">,
         assignedToCompanyIds: [formData.companyId as Id<"companies">],
-        spendUSD: Number(formData.spendUSD),
-        leads: Number(formData.leads),
-        clicks: Number(formData.clicks),
-        reach: Number(formData.reach),
-        budget: 0
+        budget: Number(formData.budget),
       });
 
       await createAd({
         ...formData,
-        mediaId: formData.mediaId as Id<"mediaItems">,
         companyId: formData.companyId as Id<"companies">,
         assignedToCompanyIds: [formData.companyId as Id<"companies">],
-        spendUSD: Number(formData.spendUSD),
-        leads: Number(formData.leads),
-        clicks: Number(formData.clicks),
-        reach: Number(formData.reach),
-        budget: 0
+        budget: Number(formData.budget),
       });
 
       console.log("✅ Ad created successfully!");
@@ -104,22 +90,15 @@ export function AddAdModal({ isOpen, onClose }: AddAdModalProps) {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="mediaId">Media</Label>
-            <Select
-              value={formData.mediaId}
-              onValueChange={(value: string) => handleSelectChange("mediaId", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select media" />
-              </SelectTrigger>
-              <SelectContent>
-                {mediaItems?.map((media) => (
-                  <SelectItem key={media._id} value={media._id}>
-                    {media.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              name="name"
+              type="text"
+              required
+              value={formData.name}
+              onChange={handleChange}
+            />
           </div>
 
           <div className="space-y-2">
@@ -166,54 +145,14 @@ export function AddAdModal({ isOpen, onClose }: AddAdModalProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="spendUSD">Spend (USD)</Label>
+            <Label htmlFor="budget">Budget</Label>
             <Input
-              id="spendUSD"
-              name="spendUSD"
+              id="budget"
+              name="budget"
               type="number"
               required
               min="0"
-              step="0.01"
-              value={formData.spendUSD}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="leads">Leads</Label>
-            <Input
-              id="leads"
-              name="leads"
-              type="number"
-              required
-              min="0"
-              value={formData.leads}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="clicks">Clicks</Label>
-            <Input
-              id="clicks"
-              name="clicks"
-              type="number"
-              required
-              min="0"
-              value={formData.clicks}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="reach">Reach</Label>
-            <Input
-              id="reach"
-              name="reach"
-              type="number"
-              required
-              min="0"
-              value={formData.reach}
+              value={formData.budget}
               onChange={handleChange}
             />
           </div>

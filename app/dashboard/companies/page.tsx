@@ -9,14 +9,23 @@ import { Button } from "@/components/ui/button";
 import { AddCompanyModal } from "../../../components/add-company-modal";
 import { EditCompanyModal } from "../../../components/edit-company-modal";
 import { DeleteCompanyModal } from "../../../components/delete-company-modal";
+import { AssignMediaModal } from "../../../components/assign-media-modal";
 
 export default function CompaniesPage() {
   const companies = useQuery(api.companies.list);
+  const allMedia = useQuery(api.media.list, {});
+  const mediaStats = useQuery(api.media.getStats);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingCompanyId, setEditingCompanyId] = useState<Id<"companies"> | null>(null);
   const [deletingCompany, setDeletingCompany] = useState<{ id: Id<"companies">; name: string } | null>(null);
+  const [assigningMediaToCompany, setAssigningMediaToCompany] = useState<{ id: Id<"companies">; name: string } | null>(null);
 
-  if (!companies) {
+  // Function to get media count for a company
+  const getMediaCount = (companyId: Id<"companies">) => {
+    return allMedia?.filter(media => media.companyId === companyId).length || 0;
+  };
+
+  if (!companies || !allMedia || !mediaStats) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg text-gray-500">Loading...</div>
@@ -27,7 +36,12 @@ export default function CompaniesPage() {
   return (
     <div className="space-y-6">
       <div className="sm:flex sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Companies</h1>
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Companies</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {mediaStats.unassigned} unassigned media items available for assignment
+          </p>
+        </div>
         <div className="mt-4 sm:mt-0">
           <Button onClick={() => setIsAddModalOpen(true)}>
             Add Company
@@ -55,10 +69,23 @@ export default function CompaniesPage() {
                           {company.name}
                         </Link>
                       </div>
-                      <div className="text-sm text-gray-500">{company.email}</div>
+                      <div className="text-sm text-gray-500">
+                        {company.email} • {getMediaCount(company._id)} media items
+                      </div>
                     </div>
                   </div>
                   <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setAssigningMediaToCompany({ id: company._id, name: company.name })}
+                      className="flex items-center space-x-1"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      <span>Media</span>
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
@@ -116,6 +143,15 @@ export default function CompaniesPage() {
           onClose={() => setDeletingCompany(null)}
           companyId={deletingCompany.id}
           companyName={deletingCompany.name}
+        />
+      )}
+
+      {assigningMediaToCompany && (
+        <AssignMediaModal
+          isOpen={!!assigningMediaToCompany}
+          onClose={() => setAssigningMediaToCompany(null)}
+          companyId={assigningMediaToCompany.id}
+          companyName={assigningMediaToCompany.name}
         />
       )}
     </div>

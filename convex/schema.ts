@@ -22,7 +22,7 @@ export default defineSchema({
   }),
 
   mediaItems: defineTable({
-    companyId: v.id("companies"),
+    companyId: v.optional(v.id("companies")),
     name: v.string(),
     description: v.string(),
     type: v.union(v.literal("image"), v.literal("video")),
@@ -31,15 +31,28 @@ export default defineSchema({
   }),
 
   ads: defineTable({
-    mediaId: v.id("mediaItems"),
+    name: v.optional(v.string()),
     companyId: v.id("companies"),
     assignedToCompanyIds: v.array(v.id("companies")),
     startDate: v.string(),
     endDate: v.string(),
+    budget: v.number(),
+    createdAt: v.optional(v.number()),
+    // Legacy fields - will be removed after migration
+    mediaId: v.optional(v.id("mediaItems")),
+    spendUSD: v.optional(v.number()),
+    leads: v.optional(v.number()),
+    clicks: v.optional(v.number()),
+    reach: v.optional(v.number()),
+  }),
+
+  adStats: defineTable({
+    adId: v.id("ads"),
+    weekStartDate: v.string(),
     spendUSD: v.number(),
     leads: v.number(),
     clicks: v.number(),
     reach: v.number(),
-    budget: v.number(),
+    createdAt: v.number(),
   }),
 }); 

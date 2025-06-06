@@ -3,8 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/convex/_generated/api";
-import { useMutation, useQuery } from "convex/react";
-import { Id } from "@/convex/_generated/dataModel";
+import { useMutation } from "convex/react";
 import {
   Dialog,
   DialogContent,
@@ -15,13 +14,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
 interface NewMediaModalProps {
@@ -40,11 +32,9 @@ export function NewMediaModal({ isOpen, onClose }: NewMediaModalProps) {
   const router = useRouter();
   const createMedia = useMutation(api.media.create);
   const getUploadUrl = useMutation(api.media.getCloudflareUploadUrl);
-  const companies = useQuery(api.companies.list);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    companyId: "",
     name: "",
     description: "",
     type: "image" as "image" | "video",
@@ -106,7 +96,6 @@ export function NewMediaModal({ isOpen, onClose }: NewMediaModalProps) {
       // Create the media record in the database
       await createMedia({
         ...formData,
-        companyId: formData.companyId as Id<"companies">,
         url: publicUrl,
       });
 
@@ -128,10 +117,6 @@ export function NewMediaModal({ isOpen, onClose }: NewMediaModalProps) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -149,25 +134,6 @@ export function NewMediaModal({ isOpen, onClose }: NewMediaModalProps) {
           <DialogTitle>Upload New Media</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="companyId">Company</Label>
-            <Select
-              value={formData.companyId}
-              onValueChange={(value: string) => handleSelectChange("companyId", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a company" />
-              </SelectTrigger>
-              <SelectContent>
-                {companies?.map((company) => (
-                  <SelectItem key={company._id} value={company._id}>
-                    {company.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input

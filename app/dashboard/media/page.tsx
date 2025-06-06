@@ -2,28 +2,37 @@
 
 import Link from "next/link";
 import { api } from "@/convex/_generated/api";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { NewMediaModal } from "../../../components/new-media-modal";
+import { DeleteMediaModal } from "../../../components/delete-media-modal";
 
 export default function MediaPage() {
-  const [selectedCompany, setSelectedCompany] = useState<Id<"companies"> | undefined>();
+  const [selectedCompany, setSelectedCompany] = useState<Id<"companies"> | "unassigned" | undefined>();
   const [selectedType, setSelectedType] = useState<"image" | "video" | undefined>();
   const [isNewMediaModalOpen, setIsNewMediaModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [mediaToDelete, setMediaToDelete] = useState<{
+    id: Id<"mediaItems">;
+    name: string;
+  } | null>(null);
 
   const mediaItems = useQuery(api.media.list, {
     companyId: selectedCompany,
     type: selectedType,
   });
-  const deleteMedia = useMutation(api.media.remove);
   const companies = useQuery(api.companies.list);
 
-  const handleDelete = async (id: Id<"mediaItems">) => {
-    if (window.confirm("Are you sure you want to delete this media item?")) {
-      await deleteMedia({ id });
-    }
+  const handleDeleteClick = (id: Id<"mediaItems">, name: string) => {
+    setMediaToDelete({ id, name });
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteModalClose = () => {
+    setIsDeleteModalOpen(false);
+    setMediaToDelete(null);
   };
 
   if (!mediaItems || !companies) {
@@ -53,9 +62,13 @@ export default function MediaPage() {
               <select
                 className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
                 value={selectedCompany || ""}
-                onChange={(e) => setSelectedCompany(e.target.value as Id<"companies"> || undefined)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSelectedCompany(value === "" ? undefined : value === "unassigned" ? "unassigned" : value as Id<"companies">);
+                }}
               >
-                <option value="">All Companies</option>
+                <option value="">All Media</option>
+                <option value="unassigned">Unassigned</option>
                 {companies.map((company) => (
                   <option key={company._id} value={company._id}>
                     {company.name}
@@ -83,7 +96,9 @@ export default function MediaPage() {
             <div className="flex-shrink-0">
               <div className="h-16 w-16 bg-gray-200 rounded-lg flex items-center justify-center">
                 {media.type === "image" ? (
-                  <img src={media.url} alt={media.name} className="h-16 w-16 object-cover rounded-lg" />
+                  <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
                 ) : (
                   <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -96,7 +111,13 @@ export default function MediaPage() {
               <Link href={`/dashboard/media/${media._id}`} className="focus:outline-none">
                 <p className="text-sm font-medium text-gray-900">{media.name}</p>
                 <p className="text-sm text-gray-500 truncate">
-                  {companies.find(c => c._id === media.companyId)?.name}
+                  {media.companyId 
+                    ? companies.find(c => c._id === media.companyId)?.name 
+                    : "Unassigned"
+                  }
+                </p>
+                <p className="text-xs text-gray-400">
+                  {new Date(media.uploadedAt).toLocaleDateString()}
                 </p>
               </Link>
             </div>
@@ -109,7 +130,7 @@ export default function MediaPage() {
               </Link>
               <button
                 type="button"
-                onClick={() => handleDelete(media._id)}
+                onClick={() => handleDeleteClick(media._id, media.name)}
                 className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200"
               >
                 Delete
@@ -122,6 +143,13 @@ export default function MediaPage() {
       <NewMediaModal
         isOpen={isNewMediaModalOpen}
         onClose={() => setIsNewMediaModalOpen(false)}
+      />
+
+      <DeleteMediaModal
+        isOpen={isDeleteModalOpen}
+        onClose={handleDeleteModalClose}
+        mediaId={mediaToDelete?.id || null}
+        mediaName={mediaToDelete?.name || ""}
       />
     </div>
   );

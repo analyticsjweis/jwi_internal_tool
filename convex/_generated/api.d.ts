@@ -13,9 +13,11 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as adStats from "../adStats.js";
 import type * as ads from "../ads.js";
 import type * as companies from "../companies.js";
 import type * as media from "../media.js";
+import type * as migration from "../migration.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -26,9 +28,11 @@ import type * as media from "../media.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  adStats: typeof adStats;
   ads: typeof ads;
   companies: typeof companies;
   media: typeof media;
+  migration: typeof migration;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

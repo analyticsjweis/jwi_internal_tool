@@ -52,19 +52,18 @@ export const get = query({
 // Create a new ad
 export const create = mutation({
   args: {
-    mediaId: v.id("mediaItems"),
+    name: v.string(),
     companyId: v.id("companies"),
     assignedToCompanyIds: v.array(v.id("companies")),
     startDate: v.string(),
     endDate: v.string(),
-    spendUSD: v.number(),
-    leads: v.number(),
-    clicks: v.number(),
-    reach: v.number(),
     budget: v.number(),
   },
   handler: async (ctx, args) => {
-    const adId = await ctx.db.insert("ads", args);
+    const adId = await ctx.db.insert("ads", {
+      ...args,
+      createdAt: Date.now(),
+    });
     return adId;
   },
 });
@@ -73,15 +72,11 @@ export const create = mutation({
 export const update = mutation({
   args: {
     id: v.id("ads"),
-    mediaId: v.id("mediaItems"),
+    name: v.string(),
     companyId: v.id("companies"),
     assignedToCompanyIds: v.array(v.id("companies")),
     startDate: v.string(),
     endDate: v.string(),
-    spendUSD: v.number(),
-    leads: v.number(),
-    clicks: v.number(),
-    reach: v.number(),
     budget: v.number(),
   },
   handler: async (ctx, args) => {
