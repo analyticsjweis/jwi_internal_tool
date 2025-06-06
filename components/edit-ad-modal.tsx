@@ -34,9 +34,10 @@ export function EditAdModal({ isOpen, onClose, adId }: EditAdModalProps) {
   const updateAd = useMutation(api.ads.update);
   const ad = useQuery(api.ads.get, { id: adId });
   const companies = useQuery(api.companies.list, {});
-
+  const mediaItems = useQuery(api.media.list, {});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
+    mediaId: "",
     companyId: "",
     assignedToCompanyIds: [] as Id<"companies">[],
     startDate: "",
@@ -46,6 +47,7 @@ export function EditAdModal({ isOpen, onClose, adId }: EditAdModalProps) {
   useEffect(() => {
     if (ad) {
       setFormData({
+        mediaId: ad.mediaId ?? "",
         companyId: ad.companyId ?? "",
         assignedToCompanyIds: ad.assignedToCompanyIds ?? [],
         startDate: new Date(ad.startDate).toISOString().split("T")[0],
@@ -61,6 +63,7 @@ export function EditAdModal({ isOpen, onClose, adId }: EditAdModalProps) {
     try {
       await updateAd({
         id: adId,
+        mediaId: formData.mediaId as Id<"mediaItems">,
         companyId: formData.companyId as Id<"companies">,
         assignedToCompanyIds: formData.assignedToCompanyIds,
         startDate: formData.startDate,
@@ -101,7 +104,24 @@ export function EditAdModal({ isOpen, onClose, adId }: EditAdModalProps) {
           <DialogTitle>Edit Ad</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-
+          <div className="space-y-2">
+            <Label htmlFor="mediaId">Media</Label>
+            <Select
+              value={formData.mediaId}
+              onValueChange={(value: string) => handleSelectChange("mediaId", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select media" />
+              </SelectTrigger>
+              <SelectContent>
+                {mediaItems?.map((media) => (
+                  <SelectItem key={media._id} value={media._id}>
+                    {media.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="companyId">Company</Label>

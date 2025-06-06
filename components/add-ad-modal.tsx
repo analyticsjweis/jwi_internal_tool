@@ -32,9 +32,11 @@ export function AddAdModal({ isOpen, onClose }: AddAdModalProps) {
   const router = useRouter();
   const createAd = useMutation(api.ads.create);
   const companies = useQuery(api.companies.list, {});
+  const mediaItems = useQuery(api.media.list, {});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
+    mediaId: "",
     companyId: "",
     startDate: "",
     endDate: "",
@@ -55,6 +57,7 @@ export function AddAdModal({ isOpen, onClose }: AddAdModalProps) {
 
       await createAd({
         ...formData,
+        mediaId: formData.mediaId as Id<"mediaItems">,
         companyId: formData.companyId as Id<"companies">,
         assignedToCompanyIds: [formData.companyId as Id<"companies">],
         budget: Number(formData.budget),
@@ -99,6 +102,25 @@ export function AddAdModal({ isOpen, onClose }: AddAdModalProps) {
               value={formData.name}
               onChange={handleChange}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="mediaId">Media</Label>
+            <Select
+              value={formData.mediaId}
+              onValueChange={(value: string) => handleSelectChange("mediaId", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select media" />
+              </SelectTrigger>
+              <SelectContent>
+                {mediaItems?.map((media) => (
+                  <SelectItem key={media._id} value={media._id}>
+                    {media.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
