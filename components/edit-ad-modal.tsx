@@ -34,32 +34,22 @@ export function EditAdModal({ isOpen, onClose, adId }: EditAdModalProps) {
   const updateAd = useMutation(api.ads.update);
   const ad = useQuery(api.ads.get, { id: adId });
   const companies = useQuery(api.companies.list, {});
-  const mediaItems = useQuery(api.media.list, {});
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    mediaId: "",
     companyId: "",
     assignedToCompanyIds: [] as Id<"companies">[],
     startDate: "",
     endDate: "",
-    spendUSD: 0,
-    leads: 0,
-    clicks: 0,
-    reach: 0,
   });
 
   useEffect(() => {
     if (ad) {
       setFormData({
-        mediaId: ad.mediaId,
-        companyId: ad.companyId,
-        assignedToCompanyIds: ad.assignedToCompanyIds,
+        companyId: ad.companyId ?? "",
+        assignedToCompanyIds: ad.assignedToCompanyIds ?? [],
         startDate: new Date(ad.startDate).toISOString().split("T")[0],
         endDate: new Date(ad.endDate).toISOString().split("T")[0],
-        spendUSD: ad.spendUSD,
-        leads: ad.leads,
-        clicks: ad.clicks,
-        reach: ad.reach,
       });
     }
   }, [ad]);
@@ -71,13 +61,11 @@ export function EditAdModal({ isOpen, onClose, adId }: EditAdModalProps) {
     try {
       await updateAd({
         id: adId,
-        ...formData,
-        mediaId: formData.mediaId as Id<"mediaItems">,
         companyId: formData.companyId as Id<"companies">,
-        spendUSD: Number(formData.spendUSD),
-        leads: Number(formData.leads),
-        clicks: Number(formData.clicks),
-        reach: Number(formData.reach),
+        assignedToCompanyIds: formData.assignedToCompanyIds,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        name: "",
         budget: 0
       });
 
@@ -113,24 +101,7 @@ export function EditAdModal({ isOpen, onClose, adId }: EditAdModalProps) {
           <DialogTitle>Edit Ad</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="mediaId">Media</Label>
-            <Select
-              value={formData.mediaId}
-              onValueChange={(value: string) => handleSelectChange("mediaId", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select media" />
-              </SelectTrigger>
-              <SelectContent>
-                {mediaItems?.map((media) => (
-                  <SelectItem key={media._id} value={media._id}>
-                    {media.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+
 
           <div className="space-y-2">
             <Label htmlFor="companyId">Company</Label>
@@ -175,58 +146,7 @@ export function EditAdModal({ isOpen, onClose, adId }: EditAdModalProps) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="spendUSD">Spend (USD)</Label>
-            <Input
-              id="spendUSD"
-              name="spendUSD"
-              type="number"
-              required
-              min="0"
-              step="0.01"
-              value={formData.spendUSD}
-              onChange={handleChange}
-            />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="leads">Leads</Label>
-            <Input
-              id="leads"
-              name="leads"
-              type="number"
-              required
-              min="0"
-              value={formData.leads}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="clicks">Clicks</Label>
-            <Input
-              id="clicks"
-              name="clicks"
-              type="number"
-              required
-              min="0"
-              value={formData.clicks}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="reach">Reach</Label>
-            <Input
-              id="reach"
-              name="reach"
-              type="number"
-              required
-              min="0"
-              value={formData.reach}
-              onChange={handleChange}
-            />
-          </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
